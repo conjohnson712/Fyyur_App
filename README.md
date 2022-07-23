@@ -169,6 +169,11 @@ source env/Scripts/activate
 4. **Install the dependencies:**
 ```
 pip install -r requirements.txt
+
+If you experience dependency issues, try the following command on dependencies one at a time: 
+
+py -m pip install <dependency>
+Example:  py -m pip install Babel
 ```
 
 5. **Run the development server:**
