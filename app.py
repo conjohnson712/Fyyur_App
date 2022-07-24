@@ -31,7 +31,7 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 
 # TODO: connect to a local postgresql database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://conjohnson712@localhost:5432/fyyur'
+SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:cnj712@localhost:5432/fyyur'
 
 # Suggestion from error message in terminal
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -42,10 +42,10 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 
 class Venue(db.Model):
-    __tablename__ = 'Venue'
+    __tablename__ = 'venues'
 
     id = db.Column(db.Integer, primary_key=True)
-    
+    name = db.Column(db.String(120), nullable=False)
     genres = db.Column(db.String(120), nullable=False)
     city = db.Column(db.String(120), nullable=False)
     state = db.Column(db.String(120), nullable=False)
@@ -64,7 +64,7 @@ class Venue(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
-    __tablename__ = 'Artist'
+    __tablename__ = 'artists'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
@@ -86,20 +86,26 @@ class Artist(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Show(db.Model):
-    __tablename__ = 'Show'
+    __tablename__ = 'shows'
 
     id = db.Column(db.Integer, primary_key=True)
     show_date = db.Column(db.DateTime, nullable=False)
+    
+    # ForeignKeys
     artist_id = db.Column(db.Integer, db.ForeignKey(
         'artists.id'), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey(
         'venues.id'), nullable=False)
 
+    # Reference: https://knowledge.udacity.com/questions/339040
+    # Relationships
+    artist = db.relationship('Artist', backref=db.backref('shows', cascade='all, delete'))
+    venue = db.relationship('Venue', backref=db.backref('shows', cascade='all, delete'))
+
     def __repr__(self):
         return f'<Show: {self.id}, show_date: {self.show_date}, artist_id: {self.artist_id}, venue_id {self.venue_id}>'
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
-
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
