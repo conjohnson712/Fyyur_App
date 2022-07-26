@@ -53,6 +53,8 @@ app.jinja_env.filters['datetime'] = format_datetime
 
 #----------------------------------------------------------------------------#
 # Models.
+# 
+# Reference (Genres): https://knowledge.udacity.com/questions/803047
 #----------------------------------------------------------------------------#
 
 class Venue(db.Model):
@@ -60,14 +62,14 @@ class Venue(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
-    genres = db.Column(db.String(), nullable=False)
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
     city = db.Column(db.String(120), nullable=False)
     state = db.Column(db.String(120), nullable=False)
     address = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=False)
     website_link = db.Column(db.String(120), nullable=False)
     facebook_link = db.Column(db.String(120), nullable=False)
-    currently_seeking = db.Column(db.Boolean, default=False)
+    seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500), nullable=False)
     shows = db.relationship('Show', backref='venues', lazy=True)
@@ -81,13 +83,13 @@ class Artist(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
-    genres = db.Column(db.String(), nullable=False)
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
     city = db.Column(db.String(120), nullable=False)
     state = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=False)
     website_link = db.Column(db.String(250), nullable=False)
     facebook_link = db.Column(db.String(250), nullable=False)
-    currently_seeking = db.Column(db.Boolean, default=False)
+    seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500), nullable=False)
     shows = db.relationship('Show', backref='artists', lazy=True)
@@ -192,7 +194,7 @@ def create_venue_submission():
           phone=form.phone.data,
           website_link=form.website_link.data,
           facebook_link=form.facebook_link.data,
-          currently_seeking=form.currently_seeking.data,
+          seeking_talent=form.seeking_talent.data,
           seeking_description=form.seeking_description.data,
           image_link=form.image_link.data,
           )
@@ -324,7 +326,7 @@ def create_artist_submission():
           phone=form.phone.data,
           website_link=form.website_link.data,
           facebook_link=form.facebook_link.data,
-          currently_seeking=form.currently_seeking.data,
+          seeking_venue=form.seeking_venue.data,
           seeking_description=form.seeking_description.data,
           image_link=form.image_link.data,
           )

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: ac6307a7cd7d
+Revision ID: c1dd16bbd4fd
 Revises: 
-Create Date: 2022-07-24 15:54:37.696097
+Create Date: 2022-07-26 16:26:10.294602
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ac6307a7cd7d'
+revision = 'c1dd16bbd4fd'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,35 +21,35 @@ def upgrade():
     op.create_table('artists',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('genres', sa.String(length=120), nullable=False),
+    sa.Column('genres', sa.ARRAY(sa.String()), nullable=False),
     sa.Column('city', sa.String(length=120), nullable=False),
     sa.Column('state', sa.String(length=120), nullable=False),
     sa.Column('phone', sa.String(length=120), nullable=False),
-    sa.Column('website_link', sa.String(length=120), nullable=False),
-    sa.Column('facebook_link', sa.String(length=120), nullable=False),
-    sa.Column('currently_seeking', sa.Boolean(), nullable=True),
-    sa.Column('seeking_description', sa.String(length=250), nullable=True),
+    sa.Column('website_link', sa.String(length=250), nullable=False),
+    sa.Column('facebook_link', sa.String(length=250), nullable=False),
+    sa.Column('seeking_venue', sa.Boolean(), nullable=True),
+    sa.Column('seeking_description', sa.String(length=500), nullable=True),
     sa.Column('image_link', sa.String(length=500), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('venues',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=120), nullable=False),
-    sa.Column('genres', sa.String(length=120), nullable=False),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('genres', sa.ARRAY(sa.String()), nullable=False),
     sa.Column('city', sa.String(length=120), nullable=False),
     sa.Column('state', sa.String(length=120), nullable=False),
     sa.Column('address', sa.String(length=120), nullable=False),
     sa.Column('phone', sa.String(length=120), nullable=False),
     sa.Column('website_link', sa.String(length=120), nullable=False),
     sa.Column('facebook_link', sa.String(length=120), nullable=False),
-    sa.Column('currently_seeking', sa.Boolean(), nullable=True),
-    sa.Column('seeking_description', sa.String(length=250), nullable=True),
+    sa.Column('seeking_talent', sa.Boolean(), nullable=True),
+    sa.Column('seeking_description', sa.String(length=500), nullable=True),
     sa.Column('image_link', sa.String(length=500), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('shows',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('show_date', sa.DateTime(), nullable=False),
+    sa.Column('start_time', sa.DateTime(), nullable=False),
     sa.Column('artist_id', sa.Integer(), nullable=False),
     sa.Column('venue_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['artist_id'], ['artists.id'], ),
