@@ -30,7 +30,7 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:cnj712@localhost:5432/fyyur'
+SQLALCHEMY_DATABASE_URI = 'postgresql:/postgres:cnj712@localhost:5432/fyyur'
 
 # Suggestion from error message in terminal
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -49,6 +49,75 @@ def format_datetime(value, format='medium'):
   return babel.dates.format_datetime(date, format, locale='en')
 
 app.jinja_env.filters['datetime'] = format_datetime
+
+
+#----------------------------------------------------------------------------#
+# Models.
+#----------------------------------------------------------------------------#
+
+class Venue(db.Model):
+    __tablename__ = 'venues'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    genres = db.Column(db.String(120), nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=False)
+    address = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(120), nullable=False)
+    website_link = db.Column(db.String(120), nullable=False)
+    facebook_link = db.Column(db.String(120), nullable=False)
+    currently_seeking = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.String(250))
+    image_link = db.Column(db.String(500), nullable=False)
+    shows = db.relationship('Show', backref='venues', lazy=True)
+
+    def __repr__(self):
+      return f'<Venue: {self.id}, name: {self.name}, genres: {self.genres}, city: {self.city}, state: {self.state}, address: {self.address}, phone: {self.phone}, website_link: {self.website_link}, facebook_link: {self.facebook_link}, currently_seeking: {self.currently_seeking}, seeking_description: {self.seeking_description}, image_link: {self.image_link}, shows: {self.shows}>'
+
+
+class Artist(db.Model):
+    __tablename__ = 'artists'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    genres = db.Column(db.String(120), nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(120), nullable=False)
+    website_link = db.Column(db.String(120), nullable=False)
+    facebook_link = db.Column(db.String(120), nullable=False)
+    currently_seeking = db.Column(db.Boolean, default=False)
+    seeking_description = db.Column(db.String(250))
+    image_link = db.Column(db.String(500), nullable=False)
+    shows = db.relationship('Show', backref='artists', lazy=True)
+    
+
+    def __repr__(self):
+        return f'<Artist: {self.id}, name: {self.name}, genres: {self.genres}, city: {self.city}, state: {self.state}, phone: {self.phone}, website_link: {self.website_link}, facebook_link: {self.facebook_link}, currently_seeking: {self.currently_seeking}, seeking_description: {self.seeking_description}, image_link: {self.image_link}, shows: {self.shows}>'
+
+
+class Show(db.Model):
+    __tablename__ = 'shows'
+
+    id = db.Column(db.Integer, primary_key=True)
+    show_date = db.Column(db.DateTime, nullable=False)
+    
+    # ForeignKeys
+    artist_id = db.Column(db.Integer, db.ForeignKey(
+        'artists.id'), nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey(
+        'venues.id'), nullable=False)
+
+    # Reference: https://knowledge.udacity.com/questions/339040
+    # Relationships
+    # artist = db.relationship('Artist', backref=db.backref('shows', cascade='all, delete'))
+    # venue = db.relationship('Venue', backref=db.backref('shows', cascade='all, delete'))
+
+    def __repr__(self):
+        return f'<Show: {self.id}, show_date: {self.show_date}, artist_id: {self.artist_id}, venue_id {self.venue_id}>'
+
+
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -77,7 +146,8 @@ def venues():
             } for venue in venues if
                 venue.city == place.city and venue.state == place.state]
         })
-    return render_template('pages/venues.html', areas=regions
+    return render_template('pages/venues.html', areas=regions)
+
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
@@ -389,6 +459,11 @@ def edit_venue_submission(venue_id):
 
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
+  form = ArtistForm()
+  return render_template('forms/new_artist.html', form=form)
+
+@app.route('/artists/create', methods=['POST'])
+def create_artist_submission():
   form = ArtistForm(request.form)
   try:
       artist = Artist(
@@ -396,16 +471,13 @@ def create_artist_form():
           genres=form.genres.data,
           city=form.city.data,
           state=form.state.data,
-          address=form.address.data,
           phone=form.phone.data,
           website_link=form.website_link.data,
           facebook_link=form.facebook_link.data,
-          currently_seeking=form.currently_seeking.data,
           seeking_description=form.seeking_description.data,
           image_link=form.image_link.data,
-          shows=form.shows.data
           )
-      db.session.add(venue)
+      db.session.add(artist)
       db.session.commit()
       # on successful db insert, flash success
       flash('Artist ' + request.form['name'] + ' was successfully listed!')
@@ -414,19 +486,8 @@ def create_artist_form():
       flash('An error occurred. Artist ' + data.name + ' could not be listed.')
       db.session.rollback()
   finally:
-      db.session.close()
-  return render_template('forms/new_artist.html', form=form)
-
-@app.route('/artists/create', methods=['POST'])
-def create_artist_submission():
-  # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
+      db.session.close() 
+  
   return render_template('pages/home.html')
 
 
