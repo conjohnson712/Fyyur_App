@@ -26,8 +26,8 @@ collections.Callable = collections.abc.Callable
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
-moment = Moment(app)
 app.config.from_object('config')
+moment = Moment(app)
 db = SQLAlchemy(app)
 
 SQLALCHEMY_DATABASE_URI = 'postgresql:/postgres:cnj712@localhost:5432/fyyur'
@@ -101,7 +101,7 @@ class Show(db.Model):
     __tablename__ = 'shows'
 
     id = db.Column(db.Integer, primary_key=True)
-    show_date = db.Column(db.DateTime, nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
     
     # ForeignKeys
     artist_id = db.Column(db.Integer, db.ForeignKey(
@@ -115,7 +115,7 @@ class Show(db.Model):
     # venue = db.relationship('Venue', backref=db.backref('shows', cascade='all, delete'))
 
     def __repr__(self):
-        return f'<Show: {self.id}, show_date: {self.show_date}, artist_id: {self.artist_id}, venue_id {self.venue_id}>'
+        return f'<Show: {self.id}, artist_id: {self.artist_id}, venue_id {self.venue_id}, start_time: {self.start_time}>'
 
 
 
@@ -348,7 +348,7 @@ def create_artist_submission():
 @app.route('/shows')
 def shows():
   # displays list of shows at /shows
-  data = []
+  data = Show.query.all()
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -360,13 +360,27 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
+  # Reference: https://knowledge.udacity.com/questions/653784
   # TODO: insert form data as a new Show record in the db, instead
-
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Show could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  form = ShowForm(request.form)
+  try:
+      show = Show(
+          artist_id=form.artist_id.data,
+          venue_id=form.venue_id.data,
+          start_time=form.start_time.data
+          )
+      db.session.add(show)
+      db.session.commit()
+       # on successful db insert, flash success
+      flash('Show was successfully listed!')
+  except ValueError as e:
+      print(e)
+      # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+      flash('An error occurred. Show could not be listed.')
+      db.session.rollback()
+  finally:
+      db.session.close()
+  
   return render_template('pages/home.html')
 
 @app.errorhandler(404)
