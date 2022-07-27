@@ -157,16 +157,20 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on venues with partial string search. Ensure it is case-insensitive.
-  # search for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-  response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+  # Reference: https://knowledge.udacity.com/questions/711360
+  search = request.form.get('search_term', '')
+  venues = Venue.query.filter(Venue.name.ilike("%" + search + "%")).all()
+  
+  data = []
+  for venue in venues:
+    data.append({
+        'id': venue.id,
+        'name': venue.name,
+    })
+
+  response = {
+    "count": len(venues),
+    "data": data
   }
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
@@ -369,7 +373,6 @@ def create_show_submission():
   # References: 
   # https://knowledge.udacity.com/questions/653784
   # https://www.programiz.com/python-programming/datetime/strftime 
-  # TODO: insert form data as a new Show record in the db, instead
   form = ShowForm(request.form)
   try:
       show = Show(
