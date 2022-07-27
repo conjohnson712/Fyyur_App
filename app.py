@@ -176,10 +176,10 @@ def show_venue(venue_id):
   data = Venue.query.filter(Venue.id == venue_id).first()
   return render_template('pages/show_venue.html', venue=data)
 
+
 #  Create Venue
 #  Reference: https://knowledge.udacity.com/questions/474735
 #  ----------------------------------------------------------------
-
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
   form = VenueForm()
@@ -208,13 +208,11 @@ def create_venue_submission():
       flash('Venue ' + request.form['name'] + ' was successfully listed!')
   except ValueError as e:
       print(e)
+      # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
       flash('An error occurred. Venue ' + data.name + ' could not be listed.')
       db.session.rollback()
   finally:
-      db.session.close()
-
-  
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+      db.session.close()  
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -266,23 +264,12 @@ def show_artist(artist_id):
 
 
 #  Update
+#  Reference: https://knowledge.udacity.com/questions/383703
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
-  form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
+  artist = Artist.query.filter(Artist.id == artist_id).first()
+  form = ArtistForm(obj=artist)
   # TODO: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -290,6 +277,17 @@ def edit_artist(artist_id):
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  form = ArtistForm(request.form)
+  try:
+      artist = Artist.query.filter(Artist.id == artist_id).first()
+      form.populate_obj(artist)
+      db.session.commit()
+      flash(f'Artist {form.name.data} was successfully edited!')
+  except ValueError as e:
+      db.session.rollback()
+      flash(f'An error occurred in {form.name.data}. Error: {str(e)}')
+  finally:
+      db.session.close()
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
