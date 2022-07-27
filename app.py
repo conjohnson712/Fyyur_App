@@ -38,10 +38,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Filters.
+# Reference: https://knowledge.udacity.com/questions/451081
 #----------------------------------------------------------------------------#
 
 def format_datetime(value, format='medium'):
-  date = dateutil.parser.parse(value)
+  if isinstance(value, str):
+        date = dateutil.parser.parse(value)
+  else:
+        date = value
   if format == 'full':
       format="EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
@@ -362,14 +366,16 @@ def create_shows():
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
-  # Reference: https://knowledge.udacity.com/questions/653784
+  # References: 
+  # https://knowledge.udacity.com/questions/653784
+  # https://www.programiz.com/python-programming/datetime/strftime 
   # TODO: insert form data as a new Show record in the db, instead
   form = ShowForm(request.form)
   try:
       show = Show(
           artist_id=form.artist_id.data,
           venue_id=form.venue_id.data,
-          start_time=form.start_time.data
+          start_time=form.start_time.data.strftime("%A, %B %d, %Y")
           )
       db.session.add(show)
       db.session.commit()
