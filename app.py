@@ -116,7 +116,7 @@ class Show(db.Model):
         'venues.id'), nullable=False)
 
     # Reference: https://knowledge.udacity.com/questions/339040
-    # Relationships
+    # Relationships - Commented out until relevance determined
     # artist = db.relationship('Artist', backref=db.backref('shows', cascade='all, delete'))
     # venue = db.relationship('Venue', backref=db.backref('shows', cascade='all, delete'))
 
@@ -219,12 +219,20 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  # TODO: Complete this endpoint for taking a venue_id, and using
-  # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
-
+  try:
+      doomed_venue = Venue.query.get(venue_id)
+      db.session.delete(doomed_venue)
+      db.session.commit()
+      flash('Venue Successfully Deleted')
+  except():
+      db.session.rollback()
+      error = True
+  finally:
+      db.session.close()
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
   return None
+
 
 #  Artists
 #  Reference: https://knowledge.udacity.com/questions/103618
@@ -255,6 +263,7 @@ def show_artist(artist_id):
   # shows the artist page with the given artist_id
   data = Artist.query.filter(Artist.id == artist_id).first()
   return render_template('pages/show_artist.html', artist=data)
+
 
 #  Update
 #  ----------------------------------------------------------------
@@ -375,7 +384,7 @@ def create_show_submission():
       show = Show(
           artist_id=form.artist_id.data,
           venue_id=form.venue_id.data,
-          start_time=form.start_time.data.strftime("%A, %B %d, %Y")
+          start_time=form.start_time.data,
           )
       db.session.add(show)
       db.session.commit()
