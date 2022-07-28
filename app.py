@@ -76,7 +76,7 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500), nullable=False)
-    shows = db.relationship('Show', backref='venues', lazy='joined', cascade="all, delete")
+    shows = db.relationship('Show', backref='venue', lazy='joined', cascade="all, delete")
 
     def __repr__(self):
       return f'<Venue: {self.id}, name: {self.name}, genres: {self.genres}, city: {self.city}, state: {self.state}, address: {self.address}, phone: {self.phone}, website_link: {self.website_link}, facebook_link: {self.facebook_link}, currently_seeking: {self.currently_seeking}, seeking_description: {self.seeking_description}, image_link: {self.image_link}, shows: {self.shows}>'
@@ -96,7 +96,7 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500), nullable=False)
-    shows = db.relationship('Show', backref='artists', lazy='joined', cascade="all, delete")
+    shows = db.relationship('Show', backref='artist', lazy='joined', cascade="all, delete")
     
 
     def __repr__(self):
@@ -183,9 +183,9 @@ def show_venue(venue_id):
   upcoming_shows = []
   for show in venue.shows:
       temp_show = {
-        "artist_id": show.artist_id,
-        "artist_name": show.artist_name,
-        "artist_image_link": show.artist_image_link,
+        "artist_id": show.artist.id,
+        "artist_name": show.artist.name,
+        "artist_image_link": show.artist.image_link,
         "start_time": show.start_time,
       }
       
@@ -305,8 +305,8 @@ def show_artist(artist_id):
   upcoming_shows = []
   for show in artist.shows:
       temp_show = {
-        "venue_id": show.venue_id,
-        "venue_name": show.venue_name,
+        "venue_id": show.venue.id,
+        "venue_name": show.venue.name,
         "venue_image_link": show.venue.image_link,
         "start_time": show.start_time,
       }
