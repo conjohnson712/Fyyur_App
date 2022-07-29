@@ -95,45 +95,51 @@ def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # References: 
   # https://knowledge.udacity.com/questions/654966
-  # https://knowledge.udacity.com/questions/298770
-  venue = Venue.query.get_or_404(venue_id)
-#   past_shows_query = db.session.query(Show).join(Venue).\
-#     filter(
-#         Show.artist_id==artist_id).filter(Show.start_time>datetime.now()).all()
-#   upcoming_shows_query = db.session.query(Show).join(Venue).filter(Show.artist_id==artist_id).filter(Show.start_time>datetime.now()).all()
-  past_shows = []
-  upcoming_shows = []
-  for show in venue.shows:
-      temp_show = {
-        "artist_id": show.artist.id,
-        "artist_name": show.artist.name,
-        "artist_image_link": show.artist.image_link,
-        "start_time": show.start_time,
-      }
-      
-      if show.start_time <= datetime.now():
-          past_shows.append(temp_show)
-      else:
-          upcoming_shows.append(temp_show)
-
-  data = {
-      "id": venue.id,
-      "name": venue.name,
-      "genres": venue.genres,
-      "address": venue.address,
-      "city": venue.city,
-      "state": venue.state,
-      "phone": venue.phone,
-      "website_link": venue.website_link,
-      "facebook_link": venue.facebook_link,
-      "seeking_talent": venue.seeking_talent,
-      "seeking_description": venue.seeking_description,
-      "image_link": venue.image_link,
-      "past_shows": past_shows,
-      "upcoming_shows": upcoming_shows,
-      "past_shows_count": len(past_shows),
-      "upcoming_shows_count": len(upcoming_shows),
-  }
+  # https://knowledge.udacity.com/questions/452402 - Mostly this one to satisfy the JOIN requirement
+  # https://knowledge.udacity.com/questions/328047
+  venue = Venue.query.get(venue_id)
+ 
+  past_shows = db.session.query(Artist, Show).join(Show).join(Venue).\
+    filter(
+        Show.venue_id == venue_id,
+        Show.artist_id == Artist.id,
+        Show.start_time < datetime.now()).all()
+  upcoming_shows = db.session.query(Artist, Show).join(Show).join(Venue).\
+    filter(
+        Show.venue_id == venue_id,
+        Show.artist_id == Artist.id,
+        Show.start_time > datetime.now()).all()
+  data= {
+    'id': venue_id,
+    'name': venue.name,
+    'city': venue.city,
+    'state': venue.state,
+    'address': venue.address,
+    'phone': venue.phone,
+    'image_link': venue.image_link,
+    'facebook_link': venue.facebook_link,
+    'website_link': venue.website_link,
+    'genres': venue.genres,
+    'seeking_talent': venue.seeking_talent,
+    'seeking_description': venue.seeking_description,
+    'upcoming_shows': [{
+      'artist_id': artist.id,
+      'artist_name': artist.name,
+      'artist_image_link': artist.image_link,
+      'start_time': show.start_time
+        } for artist, show in upcoming_shows], 
+    'past_shows': [{
+      'artist_id': artist.id,
+      "artist_name": artist.name,
+      "artist_image_link": artist.image_link,
+      "start_time": show.start_time
+      } for artist, show in past_shows],  
+    'upcoming_shows_count': len(upcoming_shows),
+    'past_shows_count': len(past_shows)
+    }
+    #   "past_shows_count": len(past_shows),
+    #   "upcoming_shows_count": len(upcoming_shows),
+  
   return render_template('pages/show_venue.html', venue=data)
 
 
@@ -227,39 +233,48 @@ def search_artists():
 def show_artist(artist_id):
   # Reference: https://knowledge.udacity.com/questions/400757
   # Reference: https://knowledge.udacity.com/questions/654966
+  # https://knowledge.udacity.com/questions/452402 - Mostly this one to satisfy the JOIN requirement
+  # https://knowledge.udacity.com/questions/328047
   # shows the artist page with the given artist_id
-  artist = Artist.query.get_or_404(artist_id)
-  past_shows = []
-  upcoming_shows = []
-  for show in artist.shows:
-      temp_show = {
-        "venue_id": show.venue.id,
-        "venue_name": show.venue.name,
-        "venue_image_link": show.venue.image_link,
-        "start_time": show.start_time,
-      }
-      
-      if show.start_time <= datetime.now():
-          past_shows.append(temp_show)
-      else:
-          upcoming_shows.append(temp_show)
-  data = {
-      "id": artist.id,
-      "name": artist.name,
-      "genres": artist.genres,
-      "city": artist.city,
-      "state": artist.state,
-      "phone": artist.phone,
-      "website_link": artist.website_link,
-      "facebook_link": artist.facebook_link,
-      "seeking_venue": artist.seeking_venue,
-      "seeking_description": artist.seeking_description,
-      "image_link": artist.image_link,
-      "past_shows": past_shows,
-      "upcoming_shows": upcoming_shows,
-      "past_shows_count": len(past_shows),
-      "upcoming_shows_count": len(upcoming_shows),
-  }
+  artist = Artist.query.get(artist_id)
+ 
+  past_shows = db.session.query(Venue, Show).join(Show).join(Artist).\
+    filter(
+        Show.venue_id == Venue.id,
+        Show.artist_id == artist_id,
+        Show.start_time < datetime.now()).all()
+  upcoming_shows = db.session.query(Venue, Show).join(Show).join(Artist).\
+    filter(
+        Show.venue_id == Venue.id,
+        Show.artist_id == artist_id,
+        Show.start_time > datetime.now()).all()
+  data= {
+    'id': artist_id,
+    'name': artist.name,
+    'city': artist.city,
+    'state': artist.state,
+    'phone': artist.phone,
+    'image_link': artist.image_link,
+    'facebook_link': artist.facebook_link,
+    'website_link': artist.website_link,
+    'genres': artist.genres,
+    'seeking_venue': artist.seeking_venue,
+    'seeking_description': artist.seeking_description,
+    'upcoming_shows': [{
+      'venue_id': venue.id,
+      'venue_name': venue.name,
+      'venue_image_link': venue.image_link,
+      'start_time': show.start_time
+        } for venue, show in upcoming_shows], 
+    'past_shows': [{
+      'venue_id': venue.id,
+      "venue_name": venue.name,
+      "venue_image_link": venue.image_link,
+      "start_time": show.start_time
+      } for venue, show in past_shows],  
+    'upcoming_shows_count': len(upcoming_shows),
+    'past_shows_count': len(past_shows)
+    }
   return render_template('pages/show_artist.html', artist=data)
 
 
