@@ -175,7 +175,7 @@ def create_venue_submission():
         db.session.commit()
         for field, err in form.errors.items():
             message.append(field + ' ' + '|'.join(err))
-        flash('Errors ' + str(message))
+        # flash('Errors ' + str(message))
         # on successful db insert, flash success
         flash('Venue ' + request.form['name'] + ' was successfully listed!')
     except ValueError as e:
